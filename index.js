@@ -39,17 +39,15 @@ async function run() {
       .db("proseParadiseDB")
       .collection("wishList");
 
+    // ----------------------------------------------------------------
+    // --------------------blog related route---------------------------
+    // ----------------------------------------------------------------
+
     app.get("/blog", async (req, res) => {
       const cursor = blogCollection.find();
       const result = await cursor.toArray();
       res.send(result);
     });
-    app.get("/wishList", async (req, res) => {
-      const cursor = wishListCollection.find();
-      const result = await cursor.toArray();
-      res.send(result);
-    });
-
     app.get("/blog/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -62,10 +60,42 @@ async function run() {
       const result = await blogCollection.insertOne(addNewBlog);
       res.send(result);
     });
+
+    // ----------------------------------------------------------------
+    // --------------------wish list related route---------------------------
+    // ----------------------------------------------------------------
+
     app.post("/wishList", async (req, res) => {
       const addNewBlog = req.body;
       //   console.log(addNewBlog);
       const result = await wishListCollection.insertOne(addNewBlog);
+      res.send(result);
+    });
+
+    app.get("/wishList", async (req, res) => {
+      const cursor = wishListCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    app.get("/wishList/:email", async (req, res) => {
+      // console.log(req.params.email);
+      const result = await wishListCollection
+        .find({ email: req.params.email })
+        .toArray();
+      res.send(result);
+    });
+
+    app.get("/wishList/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await wishListCollection.findOne(query);
+      res.send(result);
+    });
+    app.delete("/wishList/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await wishListCollection.deleteOne(query);
       res.send(result);
     });
 
