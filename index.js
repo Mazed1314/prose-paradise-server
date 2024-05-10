@@ -35,11 +35,21 @@ async function run() {
     // await client.connect();
 
     const blogCollection = client.db("proseParadiseDB").collection("blog");
+    const wishListCollection = client
+      .db("proseParadiseDB")
+      .collection("wishList");
+
     app.get("/blog", async (req, res) => {
       const cursor = blogCollection.find();
       const result = await cursor.toArray();
       res.send(result);
     });
+    app.get("/wishList", async (req, res) => {
+      const cursor = wishListCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
     app.get("/blog/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
@@ -50,6 +60,12 @@ async function run() {
       const addNewBlog = req.body;
       //   console.log(addNewBlog);
       const result = await blogCollection.insertOne(addNewBlog);
+      res.send(result);
+    });
+    app.post("/wishList", async (req, res) => {
+      const addNewBlog = req.body;
+      //   console.log(addNewBlog);
+      const result = await wishListCollection.insertOne(addNewBlog);
       res.send(result);
     });
 
