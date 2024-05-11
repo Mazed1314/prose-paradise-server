@@ -99,6 +99,26 @@ async function run() {
       res.send(result);
     });
 
+    // -----------------------------------------------------------------------
+    // --------------------pagination related route---------------------------
+    // -----------------------------------------------------------------------
+    app.get("/all-blog", async (req, res) => {
+      const size = parseInt(req.query.size);
+      const page = parseInt(req.query.page) - 1;
+      const filter = req.query.filter;
+      const search = req.query.search;
+      let query = {
+        title: { $regex: search, $options: "i" },
+      };
+      if (filter) query.category = filter;
+      const result = await blogCollection
+        .find(query)
+        .skip(page * size)
+        .limit(size)
+        .toArray();
+      res.send(result);
+    });
+
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
     console.log(
