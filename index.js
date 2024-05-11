@@ -60,6 +60,32 @@ async function run() {
       const result = await blogCollection.insertOne(addNewBlog);
       res.send(result);
     });
+    app.delete("/blog/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await blogCollection.deleteOne(query);
+      res.send(result);
+    });
+    app.put("/blog/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updatedBlog = req.body;
+
+      const blog = {
+        $set: {
+          title: updatedBlog.title,
+          category: updatedBlog.category,
+          short_description: updatedBlog.short_description,
+          long_description: updatedBlog.long_description,
+          image: updatedBlog.image,
+          email: updatedBlog.email,
+          user_name: updatedBlog.user_name,
+        },
+      };
+      const result = await blogCollection.updateOne(filter, blog, options);
+      res.send(result);
+    });
 
     // ----------------------------------------------------------------
     // --------------------wish list related route---------------------------
@@ -96,6 +122,13 @@ async function run() {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await wishListCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    app.get("/my-blog/:email", async (req, res) => {
+      const result = await blogCollection
+        .find({ email: req.params.email })
+        .toArray();
       res.send(result);
     });
 
