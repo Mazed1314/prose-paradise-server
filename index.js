@@ -35,6 +35,9 @@ async function run() {
     // await client.connect();
 
     const blogCollection = client.db("proseParadiseDB").collection("blog");
+    const commentCollection = client
+      .db("proseParadiseDB")
+      .collection("comment");
     const wishListCollection = client
       .db("proseParadiseDB")
       .collection("wishList");
@@ -164,7 +167,29 @@ async function run() {
         .toArray();
       res.send(result);
     });
+    // -----------------------------------------------------------------------
+    // --------------------comment related route---------------------------
+    // -----------------------------------------------------------------------
+    app.get("/com", async (req, res) => {
+      const cursor = commentCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
 
+    app.post("/com", async (req, res) => {
+      const comment = req.body;
+      const result = await commentCollection.insertOne(comment);
+      res.send(result);
+    });
+
+    app.get("/com/:blog_id", async (req, res) => {
+      const result = await commentCollection
+        .find({ blog_id: req.params.blog_id })
+        .toArray();
+      res.send(result);
+    });
+
+    // ======================================================================================
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
     console.log(
