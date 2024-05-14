@@ -6,6 +6,7 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 // middleware
+
 app.use(
   cors({
     origin: [
@@ -18,9 +19,8 @@ app.use(
 );
 app.use(express.json());
 
+// connect with mongodb
 const uri = `mongodb+srv://${process.env.DB_user}:${process.env.Db_pass}@cluster0.tvtcgta.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
-
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -31,8 +31,9 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
-    // await client.connect();
+    // ----------------------------------------------------------------
+    // --------------------DB collection---------------------------
+    // ----------------------------------------------------------------
 
     const blogCollection = client.db("proseParadiseDB").collection("blog");
     const commentCollection = client
@@ -47,28 +48,32 @@ async function run() {
     // ----------------------------------------------------------------
 
     app.get("/blog", async (req, res) => {
-      const cursor = blogCollection.find();
-      const result = await cursor.toArray();
+      // const cursor = blogCollection.find();
+      const result = await blogCollection.find().toArray();
       res.send(result);
     });
+
     app.get("/blog/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await blogCollection.findOne(query);
       res.send(result);
     });
+
     app.post("/addBlog", async (req, res) => {
       const addNewBlog = req.body;
       //   console.log(addNewBlog);
       const result = await blogCollection.insertOne(addNewBlog);
       res.send(result);
     });
+
     app.delete("/blog/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await blogCollection.deleteOne(query);
       res.send(result);
     });
+
     app.put("/blog/:id", async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
@@ -101,14 +106,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/wishList", async (req, res) => {
-      const cursor = wishListCollection.find();
-      const result = await cursor.toArray();
-      res.send(result);
-    });
-
     app.get("/wishList/:email", async (req, res) => {
-      // console.log(req.params.email);
       const result = await wishListCollection
         .find({ email: req.params.email })
         .toArray();
@@ -121,12 +119,17 @@ async function run() {
       const result = await wishListCollection.findOne(query);
       res.send(result);
     });
+
     app.delete("/wishList/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await wishListCollection.deleteOne(query);
       res.send(result);
     });
+
+    // -----------------------------------------------------------------------
+    // --------------------my-blogs related route---------------------------
+    // -----------------------------------------------------------------------
 
     app.get("/my-blog/:email", async (req, res) => {
       const result = await blogCollection
@@ -140,17 +143,20 @@ async function run() {
     // -----------------------------------------------------------------------
 
     app.get("/api/top-posts", async (req, res) => {
-      const result = await blogCollection
-        .find()
-        .sort({ long_description: 1, _id: 1 })
-        .limit(10)
-        .toArray();
-      res.send(result);
+      const result = await blogCollection.find().toArray();
+      result.sort((a, b) => {
+        const lengthA = a.long_description ? a.long_description.length : 0;
+        const lengthB = b.long_description ? b.long_description.length : 0;
+        return lengthB - lengthA;
+      });
+      const topPosts = result.slice(0, 10);
+      res.send(topPosts);
     });
 
     // -----------------------------------------------------------------------
     // --------------------pagination related route---------------------------
     // -----------------------------------------------------------------------
+
     app.get("/all-blog", async (req, res) => {
       const size = parseInt(req.query.size);
       const page = parseInt(req.query.page) - 1;
@@ -167,14 +173,10 @@ async function run() {
         .toArray();
       res.send(result);
     });
+
     // -----------------------------------------------------------------------
     // --------------------comment related route---------------------------
     // -----------------------------------------------------------------------
-    app.get("/com", async (req, res) => {
-      const cursor = commentCollection.find();
-      const result = await cursor.toArray();
-      res.send(result);
-    });
 
     app.post("/com", async (req, res) => {
       const comment = req.body;
@@ -189,7 +191,6 @@ async function run() {
       res.send(result);
     });
 
-    // ======================================================================================
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
     console.log(
@@ -203,7 +204,7 @@ async function run() {
 run().catch(console.dir);
 
 app.get("/", (req, res) => {
-  res.send("seeeeeeeeerver is running");
+  res.send("ProseParadise is running");
 });
 
 app.listen(port, () => {
